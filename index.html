@@ -1,0 +1,484 @@
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Society Impact Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN for the Radar Chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <style>
+        /* Custom styles for the range slider track color to match Tailwind's blue */
+        input[type="range"]::-webkit-slider-runnable-track {
+            background: #d1d5db; /* gray-300 */
+        }
+        input[type="range"]::-moz-range-track {
+            background: #d1d5db; /* gray-300 */
+        }
+        input[type="range"]::-ms-fill-lower {
+            background: #d1d5db; /* gray-300 */
+        }
+        /* Custom styles for the thumb (slider handle) */
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #2563eb; /* blue-600 */
+            border-radius: 50%;
+            cursor: pointer;
+            margin-top: -6px; /* Center the thumb vertically */
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #2563eb; /* blue-600 */
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div id="app" class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
+        <div class="bg-white rounded-xl shadow-2xl p-6 sm:p-8 mb-6">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-2">AI Society Impact Calculator</h1>
+            <p class="text-gray-600 mb-6">
+                Adjust the variables below to explore how different AI deployment scenarios affect society.
+                Watch how policy interventions can transform outcomes.
+            </p>
+
+            <!-- Scenario Presets -->
+            <div class="mb-8 p-4 bg-gray-100 rounded-lg shadow-inner">
+                <h3 class="font-semibold mb-3 text-gray-700">Try a Scenario:</h3>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <button data-preset="current" class="preset-btn px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition duration-150 shadow-md">
+                        📊 Current Trajectory
+                    </button>
+                    <button data-preset="unregulated" class="preset-btn px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition duration-150 shadow-md">
+                        ⚠️ Unregulated Market
+                    </button>
+                    <button data-preset="balanced" class="preset-btn px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition duration-150 shadow-md">
+                        ⚖️ Balanced Policy
+                    </button>
+                    <button data-preset="utopian" class="preset-btn px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-lg transition duration-150 shadow-md">
+                        🌟 Strong Governance
+                    </button>
+                </div>
+            </div>
+
+            <!-- Overall Impact Score & Radar Chart -->
+            <div id="impact-panel" class="mb-8 p-6 rounded-xl bg-green-500 bg-opacity-10 border-2 border-green-500 shadow-inner">
+                <div class="flex flex-col md:flex-row items-center justify-between">
+                    <div class="mb-4 md:mb-0">
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Social Impact Index</h2>
+                        <div class="flex items-center gap-4">
+                            <span id="social-impact-score" class="text-6xl font-extrabold text-blue-700">60</span>
+                            <div>
+                                <div id="impact-level" class="flex items-center gap-2 text-green-700">
+                                    <!-- SVG Icon placeholder is initialized here with the ID -->
+                                    <svg id="impact-icon" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <!-- Initial path will be overwritten immediately by JS init function -->
+                                    </svg>
+                                    <span id="impact-label" class="text-2xl font-bold">Stable</span>
+                                </div>
+                                <p class="text-sm text-gray-600">Society Status</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Radar Chart Container -->
+                    <div class="w-full md:w-64 h-48 flex justify-center items-center">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Input Controls -->
+                <div id="input-controls" class="space-y-6 bg-gray-50 p-6 rounded-xl shadow">
+                    <h3 class="text-2xl font-semibold text-gray-800 border-b pb-3 mb-4">Input Variables</h3>
+                    <!-- Slider controls will be generated by JavaScript -->
+                </div>
+
+                <!-- Output Metrics -->
+                <div id="output-metrics" class="space-y-4 p-6 rounded-xl shadow-lg bg-white">
+                    <h3 class="text-2xl font-semibold text-gray-800 border-b pb-3 mb-4">Societal Outcomes</h3>
+                    <!-- Output panels will be generated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Key Insights -->
+            <div class="mt-8 p-6 bg-blue-50 rounded-xl border-l-4 border-blue-500 shadow-md">
+                <h3 class="font-semibold text-xl text-gray-800 mb-3">💡 Key Insight</h3>
+                <p id="key-insight" class="text-gray-700">
+                    Adjust the sliders or select a preset to generate a key insight here.
+                </p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 mt-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">About This Model</h3>
+            <p class="text-sm text-gray-600 mb-2">
+                This is a conceptual framework to illustrate how different variables interact in AI deployment.
+                While simplified, it demonstrates a critical principle: <strong>technology outcomes depend on policy choices</strong>.
+            </p>
+            <p class="text-xs text-gray-500">
+                The calculations are based on logical relationships between economic factors, not predictive algorithms.
+                Use this as a thinking tool, not a precise forecast.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // --- Core Data and Configuration ---
+
+        const presets = {
+            current: { adoptionRate: 60, automationSensitivity: 50, productivityGrowth: 3, profitCapture: 70, policyStrength: 30, educationSpeed: 40 },
+            unregulated: { adoptionRate: 90, automationSensitivity: 70, productivityGrowth: 5, profitCapture: 85, policyStrength: 10, educationSpeed: 30 },
+            balanced: { adoptionRate: 70, automationSensitivity: 50, productivityGrowth: 4, profitCapture: 50, policyStrength: 70, educationSpeed: 70 },
+            utopian: { adoptionRate: 80, automationSensitivity: 40, productivityGrowth: 6, profitCapture: 30, policyStrength: 90, educationSpeed: 85 }
+        };
+
+        const inputConfig = [
+            { key: 'adoptionRate', label: 'AI Adoption Rate', desc: 'How rapidly AI is deployed across industries', unit: '%', max: 100, step: 5 },
+            { key: 'automationSensitivity', label: 'Job Automation Sensitivity', desc: 'Percentage of jobs vulnerable to automation', unit: '%', max: 100, step: 5 },
+            { key: 'productivityGrowth', label: 'Productivity Growth Rate', desc: 'Annual GDP growth from AI', unit: '%', max: 10, step: 0.5 },
+            { key: 'profitCapture', label: 'Corporate Profit Capture', desc: 'Share of gains captured by corporations vs workers', unit: '%', max: 100, step: 5 },
+            { key: 'policyStrength', label: 'Policy & Redistribution', desc: 'Strength of worker protections and benefit sharing', unit: '%', max: 100, step: 5 },
+            { key: 'educationSpeed', label: 'Education Adaptation Speed', desc: 'How quickly education systems respond', unit: '%', max: 100, step: 5 }
+        ];
+
+        const outputConfig = [
+            { key: 'purchasingPower', label: 'Worker Purchasing Power', desc: 'Ability of workers to afford goods and services' },
+            { key: 'employmentRate', label: 'Employment Rate', desc: 'Percentage of workforce with stable employment' },
+            { key: 'cognitiveHealth', label: 'Cognitive Skills Index', desc: 'Society\'s capacity for critical thinking and judgment' },
+            { key: 'marketStability', label: 'Market Stability', desc: 'Economic system\'s resistance to shocks' },
+            { key: 'qualityOfLife', label: 'Quality of Life Index', desc: 'Overall wellbeing and life satisfaction' },
+            { key: 'aiDependency', label: 'AI Dependency Score', desc: 'Degree of cognitive offloading to AI systems', inverse: true }
+        ];
+
+        let inputs = {};
+        let outputs = {};
+        let radarChart = null;
+
+        // SVG Icons (replacing Lucide-React)
+        // FIX: Added id="impact-icon" to ensure the element can be selected after being replaced via outerHTML
+        const trendingUpIcon = `<svg id="impact-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>`;
+        const trendingDownIcon = `<svg id="impact-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>`;
+        const alertCircleIcon = `<svg id="impact-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+
+
+        // --- Calculation Logic ---
+
+        function calculateOutputs(i) {
+            // Core calculations
+            const redistribution = i.policyStrength / 100;
+            const jobLoss = (i.adoptionRate / 100) * (i.automationSensitivity / 100);
+            
+            // Purchasing Power (Base 50 + Policy Gain - Job Loss Impact)
+            const purchasingPower = Math.max(0, Math.min(100, 
+                50 + (i.productivityGrowth * 3 * redistribution) - (jobLoss * 80)
+            ));
+            
+            // AI Overreliance
+            const aiOverreliance = (i.adoptionRate / 100) * (1 - i.educationSpeed / 100);
+            // Cognitive Health (Base 50 + Education Gain - Overreliance Impact)
+            const cognitiveHealth = Math.max(0, Math.min(100,
+                50 + (i.educationSpeed / 2) - (aiOverreliance * 60)
+            ));
+            
+            const wealthConcentration = (i.profitCapture / 100) * (1 - redistribution);
+            // Employment Rate (Base 70 - Job Loss Impact + Policy Buffer)
+            const employmentRate = Math.max(0, Math.min(100,
+                70 - (jobLoss * 50) + (i.policyStrength / 5)
+            ));
+            
+            // Market Stability (Mix of economic factors - Wealth Concentration Risk)
+            const marketStability = Math.max(0, Math.min(100,
+                (purchasingPower * 0.4) + (cognitiveHealth * 0.3) + (employmentRate * 0.3) - (wealthConcentration * 30)
+            ));
+            
+            // AI Dependency (High Adoption + High Overreliance)
+            const aiDependency = Math.min(100,
+                (i.adoptionRate * 0.7) + (aiOverreliance * 30)
+            );
+            
+            // Quality of Life (Mix of positive social factors)
+            const qualityOfLife = Math.max(0, Math.min(100,
+                (purchasingPower * 0.3) + (employmentRate * 0.3) + (cognitiveHealth * 0.2) + (i.policyStrength * 0.2)
+            ));
+            
+            // Social Impact (Average of key positive outcomes)
+            const socialImpact = (marketStability + qualityOfLife + employmentRate) / 3;
+            
+            return {
+                purchasingPower: Math.round(purchasingPower),
+                cognitiveHealth: Math.round(cognitiveHealth),
+                marketStability: Math.round(marketStability),
+                aiDependency: Math.round(aiDependency),
+                employmentRate: Math.round(employmentRate),
+                qualityOfLife: Math.round(qualityOfLife),
+                socialImpact: Math.round(socialImpact)
+            };
+        }
+
+        // --- Utility Functions ---
+
+        function getColor(value, inverse = false) {
+            if (inverse) {
+                if (value > 60) return 'text-red-600';
+                return 'text-green-600';
+            }
+            if (value >= 70) return 'text-green-600';
+            if (value >= 40) return 'text-yellow-600';
+            return 'text-red-600';
+        }
+
+        function getBgColor(value, inverse = false) {
+            if (inverse) {
+                if (value > 60) return 'bg-red-500';
+                return 'bg-green-500';
+            }
+            if (value >= 70) return 'bg-green-500';
+            if (value >= 40) return 'bg-yellow-500';
+            return 'bg-red-500';
+        }
+
+        function getImpactLevel(score) {
+            if (score >= 70) return { label: 'Thriving', color: 'bg-green-500', iconSvg: trendingUpIcon };
+            if (score >= 50) return { label: 'Stable', color: 'bg-yellow-500', iconSvg: alertCircleIcon };
+            if (score >= 30) return { label: 'Stressed', color: 'bg-orange-500', iconSvg: trendingDownIcon };
+            return { label: 'Crisis', color: 'bg-red-500', iconSvg: trendingDownIcon };
+        }
+
+        function getKeyInsight(outputs, inputs) {
+            if (outputs.socialImpact < 40 && inputs.policyStrength < 50) {
+                return "Try increasing Policy & Redistribution strength. Notice how it can dramatically reverse negative outcomes even with high AI adoption.";
+            } else if (outputs.socialImpact >= 70) {
+                return "This scenario shows sustainable AI integration. Strong policy enables high adoption without sacrificing social stability.";
+            } else if (outputs.aiDependency > 70 && inputs.educationSpeed < 60) {
+                return "High AI dependency with slow education adaptation risks cognitive atrophy. Increase Education Adaptation Speed to build resilience.";
+            } else {
+                return "Experiment with different combinations. The model shows that policy choices matter more than adoption rates.";
+            }
+        }
+
+
+        // --- DOM Rendering and Chart Update Functions ---
+
+        function renderInputControls() {
+            const container = document.getElementById('input-controls');
+            // Check if the input controls have been rendered once (to avoid re-rendering the header)
+            if (container.children.length <= 1) {
+                container.innerHTML = `<h3 class="text-2xl font-semibold text-gray-800 border-b pb-3 mb-4">Input Variables</h3>`;
+            
+                inputConfig.forEach(config => {
+                    const value = inputs[config.key];
+                    const html = `
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <label for="${config.key}" class="font-medium text-gray-700">${config.label}</label>
+                                <span id="${config.key}-value" class="text-lg font-semibold text-blue-600">${value}${config.unit}</span>
+                            </div>
+                            <input
+                                type="range"
+                                id="${config.key}"
+                                min="0"
+                                max="${config.max}"
+                                step="${config.step}"
+                                value="${value}"
+                                data-unit="${config.unit}"
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 slider-input"
+                            />
+                            <p class="text-xs text-gray-500">${config.desc}</p>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', html);
+                });
+                
+                // Add listeners to the new sliders only after they are rendered
+                document.querySelectorAll('.slider-input').forEach(slider => {
+                    slider.addEventListener('input', handleInput);
+                });
+            } else {
+                 // Only update the display values on subsequent runs
+                inputConfig.forEach(config => {
+                    const value = inputs[config.key];
+                    const unit = config.unit;
+                    document.getElementById(`${config.key}`).value = value;
+                    document.getElementById(`${config.key}-value`).textContent = `${value}${unit}`;
+                });
+            }
+        }
+
+        function renderOutputMetrics(outputs) {
+            const container = document.getElementById('output-metrics');
+            container.innerHTML = `<h3 class="text-2xl font-semibold text-gray-800 border-b pb-3 mb-4">Societal Outcomes</h3>`;
+
+            outputConfig.forEach(config => {
+                const value = outputs[config.key];
+                const inverse = config.inverse || false;
+                const textColor = getColor(value, inverse);
+                const barColor = getBgColor(value, inverse);
+
+                const html = `
+                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-semibold text-gray-700">${config.label}</span>
+                            <span class="text-2xl font-bold ${textColor}">
+                                ${value}
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                            <div
+                                class="h-2 rounded-full ${barColor}"
+                                style="width: ${value}%"
+                            ></div>
+                        </div>
+                        <p class="text-xs text-gray-600">${config.desc}</p>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function renderImpactPanel(outputs) {
+            const impact = getImpactLevel(outputs.socialImpact);
+            
+            // Update overall score
+            document.getElementById('social-impact-score').textContent = outputs.socialImpact;
+
+            // Update impact level and icon
+            const impactLevelEl = document.getElementById('impact-level');
+            const impactPanelEl = document.getElementById('impact-panel');
+            
+            // Reset colors
+            // Note: The color classes rely on dynamic Tailwind color strings like 'text-green-700'
+            impactLevelEl.className = `flex items-center gap-2 ${impact.color.replace('bg-', 'text-')}`;
+            impactPanelEl.className = `mb-8 p-6 rounded-xl ${impact.color} bg-opacity-10 border-2 border-current shadow-inner`;
+
+            // FIX: The SVG replacement requires the ID to be included in the new string.
+            const iconElement = document.getElementById('impact-icon');
+            if (iconElement) {
+                 iconElement.outerHTML = impact.iconSvg; // Replace the SVG element, ensuring the replacement has the ID
+            } else {
+                console.error("Impact icon element not found.");
+            }
+           
+            document.getElementById('impact-label').textContent = impact.label;
+            
+            // Update Key Insight
+            document.getElementById('key-insight').textContent = getKeyInsight(outputs, inputs);
+        }
+
+        function updateChart(outputs) {
+            const radarLabels = ['Purchasing Power', 'Employment', 'Cognitive Health', 'Market Stability', 'Quality of Life'];
+            const radarDataValues = [
+                outputs.purchasingPower,
+                outputs.employmentRate,
+                outputs.cognitiveHealth,
+                outputs.marketStability,
+                outputs.qualityOfLife
+            ];
+            
+            if (radarChart) {
+                // Update existing chart
+                radarChart.data.datasets[0].data = radarDataValues;
+                radarChart.update();
+            } else {
+                // Initialize the chart
+                const ctx = document.getElementById('radarChart').getContext('2d');
+                radarChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: radarLabels,
+                        datasets: [{
+                            label: 'Current Scenario',
+                            data: radarDataValues,
+                            backgroundColor: 'rgba(59, 130, 246, 0.4)', // blue-500 opacity
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 2,
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => `${context.dataset.label}: ${context.parsed.r}`
+                                }
+                            }
+                        },
+                        scales: {
+                            r: {
+                                angleLines: { display: true, color: 'rgba(209, 213, 219, 0.5)' }, // gray-300
+                                grid: { color: 'rgba(209, 213, 219, 0.5)' },
+                                pointLabels: { font: { size: 11, weight: 'bold' }, color: '#374151' }, // gray-700
+                                suggestedMin: 0,
+                                suggestedMax: 100,
+                                ticks: { display: false }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function runCalculationsAndRender() {
+            outputs = calculateOutputs(inputs);
+            renderInputControls(); 
+            renderOutputMetrics(outputs);
+            renderImpactPanel(outputs);
+            updateChart(outputs);
+        }
+
+
+        // --- Event Handlers ---
+
+        function handleInput(event) {
+            const key = event.target.id;
+            const value = parseFloat(event.target.value);
+            // const unit is now handled by renderInputControls reading data-unit attribute
+            
+            inputs[key] = value;
+            runCalculationsAndRender();
+        }
+
+        function applyPreset(event) {
+            const presetKey = event.target.dataset.preset;
+            if (presets[presetKey]) {
+                inputs = { ...presets[presetKey] }; // Apply new state
+                runCalculationsAndRender();
+            }
+        }
+
+        function init() {
+            // 1. Initialize inputs with the 'current' preset
+            inputs = { ...presets.current };
+            
+            // 2. Initial render
+            runCalculationsAndRender();
+
+            // 3. Attach listeners to preset buttons
+            document.querySelectorAll('.preset-btn').forEach(button => {
+                button.addEventListener('click', applyPreset);
+            });
+        }
+
+        // Start the application when the DOM is fully loaded
+        window.onload = init;
+    </script>
+</body>
+</html>
